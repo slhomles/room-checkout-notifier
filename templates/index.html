@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Room Check Report</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Someli Room Check Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4F46E5;
-            --primary-hover: #4338CA;
-            --bg-gradient: linear-gradient(135deg, #f6f8fd 0%, #f1f5f9 100%);
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --text-main: #1e293b;
+            --someli-dark: #122921; /* Dark Forest Green */
+            --someli-green: #1A3A32;
+            --someli-light: #F4F7F6;
+            --someli-gold: #D4AF37;
+            --text-main: #334155;
             --text-muted: #64748b;
             --border: #e2e8f0;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-            --radius: 16px;
+            --radius: 12px;
+            --shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-gradient);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--someli-light);
             color: var(--text-main);
             min-height: 100vh;
             margin: 0;
@@ -33,24 +33,54 @@
 
         .container {
             width: 100%;
-            max-width: 700px;
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
+            max-width: 600px;
+            background: #ffffff;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            padding: 40px;
-            border: 1px solid rgba(255,255,255,0.5);
-            transition: all 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        h1 {
-            margin-top: 0;
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 30px;
+        .header-banner {
+            width: 100%;
+            height: 180px;
+            background-image: url('/static/banner.png');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .header-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(26,58,50,0.8) 0%, rgba(26,58,50,0.95) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
             text-align: center;
-            letter-spacing: -0.5px;
+        }
+
+        .logo-text {
+            color: #ffffff;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 0 0 5px 0;
+        }
+
+        .sub-logo {
+            color: var(--someli-gold);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .main-content {
+            padding: 35px 40px;
         }
 
         .form-group {
@@ -59,64 +89,65 @@
 
         label {
             display: block;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             margin-bottom: 8px;
-            color: var(--text-main);
+            color: var(--someli-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         input[type="text"], input[type="date"], select {
             width: 100%;
             padding: 12px 16px;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 15px;
             border: 1px solid var(--border);
             border-radius: 8px;
             background-color: #f8fafc;
             color: var(--text-main);
             box-sizing: border-box;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
         }
 
         input[type="text"]:focus, input[type="date"]:focus, select:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            border-color: var(--someli-green);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(26, 58, 50, 0.1);
         }
 
         button {
-            background-color: var(--primary);
+            background-color: var(--someli-green);
             color: white;
             border: none;
             border-radius: 8px;
             padding: 14px 24px;
             font-size: 16px;
             font-weight: 600;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             cursor: pointer;
             width: 100%;
-            transition: background-color 0.2s, transform 0.1s;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+            transition: all 0.2s;
+            margin-top: 10px;
         }
 
         button:hover {
-            background-color: var(--primary-hover);
-        }
-
-        button:active {
-            transform: translateY(1px);
+            background-color: var(--someli-dark);
+            box-shadow: 0 4px 12px rgba(26, 58, 50, 0.2);
         }
 
         button:disabled {
-            background-color: #cbd5e1;
+            background-color: #94a3b8;
             cursor: not-allowed;
-            transform: none;
             box-shadow: none;
         }
 
         .report-section {
             display: none;
-            margin-top: 30px;
+            margin-top: 35px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
             animation: fadeIn 0.4s ease forwards;
         }
 
@@ -137,37 +168,40 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 20px;
-            font-family: monospace;
+            font-family: 'Courier New', Courier, monospace;
             font-size: 14px;
             line-height: 1.6;
             white-space: pre-wrap;
             min-height: 150px;
-            max-height: 400px;
-            overflow-y: auto;
+            color: var(--someli-dark);
         }
 
         .btn-copy {
             background-color: #fff;
-            color: var(--text-main);
-            border: 1px solid var(--border);
+            color: var(--someli-green);
+            border: 1px solid var(--someli-green);
             padding: 8px 16px;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: 600;
             width: auto;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            margin-top: 0;
+            border-radius: 6px;
         }
 
         .btn-copy:hover {
-            background-color: #f1f5f9;
+            background-color: var(--someli-green);
+            color: #fff;
+            box-shadow: none;
         }
 
         .loader {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,.3);
             border-radius: 50%;
             border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 0.8s linear infinite;
             display: none;
             vertical-align: middle;
             margin-left: 10px;
@@ -178,7 +212,7 @@
         }
 
         #error-msg {
-            color: #ef4444;
+            color: #b91c1c;
             background: #fef2f2;
             padding: 12px;
             border-radius: 8px;
@@ -192,58 +226,61 @@
 <body>
 
 <div class="container">
-    <h1>📝 Tổng Hợp Lịch Phòng</h1>
-
-    <div class="form-group">
-        <label for="token">Token Xác Thực (Từ F12)</label>
-        <input type="text" id="token" placeholder="Bearer eyJhbGc... hoặc session_id=...">
+    <div class="header-banner">
+        <div class="header-overlay">
+            <h1 class="logo-text">Someli</h1>
+            <div class="sub-logo">PROPERTY MANAGEMENT</div>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="date">Chọn Ngày Báo Cáo</label>
-        <input type="date" id="date">
-    </div>
-
-    <button id="btn-fetch" onclick="fetchData()">
-        Lấy Dữ Liệu
-        <div class="loader" id="loader"></div>
-    </button>
-
-    <div id="error-msg"></div>
-
-    <div class="report-section" id="report-section">
+    <div class="main-content">
         <div class="form-group">
-            <label for="branch-select">Chọn Cơ Sở</label>
-            <select id="branch-select" onchange="showReport()"></select>
+            <label for="token">Token Hệ Thống</label>
+            <input type="text" id="token" placeholder="Bearer eyJhbG... hoặc session_id=...">
         </div>
-        
-        <div class="report-header">
-            <h3 style="margin:0; font-size: 16px; color: var(--text-main);">Kết quả:</h3>
-            <button class="btn-copy" onclick="copyText()">Copy Báo Cáo</button>
+
+        <div class="form-group">
+            <label for="date">Chọn Ngày Tra Cứu</label>
+            <input type="date" id="date">
         </div>
-        
-        <div class="report-box" id="report-box"></div>
+
+        <button id="btn-fetch" onclick="fetchData()">
+            TRÍCH XUẤT BÁO CÁO
+            <div class="loader" id="loader"></div>
+        </button>
+
+        <div id="error-msg"></div>
+
+        <div class="report-section" id="report-section">
+            <div class="form-group">
+                <label for="branch-select">Khu vực / Chi nhánh</label>
+                <select id="branch-select" onchange="showReport()"></select>
+            </div>
+            
+            <div class="report-header">
+                <h3 style="margin:0; font-size: 15px; font-weight: 700; color: var(--someli-dark);">Chi tiết báo cáo:</h3>
+                <button class="btn-copy" onclick="copyText()">Sao Chép</button>
+            </div>
+            
+            <div class="report-box" id="report-box"></div>
+        </div>
     </div>
 </div>
 
 <script>
     let reportsData = {};
 
-    // Khởi tạo
     window.onload = async () => {
-        // Lấy token cũ từ LocalStorage
         const savedToken = localStorage.getItem('room_check_token');
         if(savedToken) {
             document.getElementById('token').value = savedToken;
         }
 
-        // Thiết lập ngày mặc định
         const now = new Date();
         if(now.getHours() >= 20) {
-            now.setDate(now.getDate() + 1); // Đặt ngày mai nếu > 20h
+            now.setDate(now.getDate() + 1);
         }
         
-        // Format YYYY-MM-DD
         const yyyy = now.getFullYear();
         const mm = String(now.getMonth() + 1).padStart(2, '0');
         const dd = String(now.getDate()).padStart(2, '0');
@@ -258,14 +295,12 @@
         const errorMsg = document.getElementById('error-msg');
         
         if(!token) {
-            showError("Vui lòng nhập Token!");
+            showError("Vui lòng nhập Token hệ thống!");
             return;
         }
 
-        // Lưu config vào LocalStorage
         localStorage.setItem('room_check_token', token);
 
-        // UI state
         btn.disabled = true;
         loader.style.display = 'inline-block';
         errorMsg.style.display = 'none';
@@ -283,10 +318,10 @@
             if(res.ok && data.status === 'success') {
                 reportsData = data.reports;
                 const select = document.getElementById('branch-select');
-                select.innerHTML = ''; // Clear old options
+                select.innerHTML = ''; 
                 
                 if(data.branches.length === 0) {
-                    showError("Không có dữ liệu phòng cho ngày này.");
+                    showError("Không lấy được danh sách cơ sở.");
                 } else {
                     data.branches.forEach(branch => {
                         const option = document.createElement('option');
@@ -323,10 +358,10 @@
         navigator.clipboard.writeText(text).then(() => {
             const copyBtn = document.querySelector('.btn-copy');
             const originalText = copyBtn.textContent;
-            copyBtn.textContent = 'Đã Copy!';
-            copyBtn.style.backgroundColor = '#ecfdf5';
-            copyBtn.style.borderColor = '#10b981';
-            copyBtn.style.color = '#047857';
+            copyBtn.textContent = 'Đã Sao Chép!';
+            copyBtn.style.backgroundColor = 'var(--someli-gold)';
+            copyBtn.style.borderColor = 'var(--someli-gold)';
+            copyBtn.style.color = '#fff';
             setTimeout(() => {
                 copyBtn.textContent = originalText;
                 copyBtn.style.backgroundColor = '';

@@ -87,16 +87,30 @@ def process_data(data, target_date_str):
                 'checkout_time': checkout_vn
             })
 
-    checkouts.sort(key=lambda x: x['checkout_time'])
-
     report = {}
     
-    # Lấy tất cả các tên cơ sở có trong dữ liệu để đảm bảo không sót cơ sở nào trên Dropdown
-    for item in data:
-        if 'branchId' in item and 'name' in item['branchId']:
-            branch_name = item['branchId']['name']
-            if branch_name not in report:
-                report[branch_name] = {'Sáng': [], 'Chiều': [], 'Tối': []}
+    # Khởi tạo cố định 16 cơ sở
+    ALL_BRANCHES = [
+        "HN01 - 119 Đình Thôn",
+        "HN02 - 475 Đội Cấn",
+        "HN03 - 24 Thổ Quan, Khâm Thiên",
+        "HN04 - 59A Yên Bình",
+        "HN06 - 192 Lê Trọng Tấn",
+        "HN07 - 67 Lê Thanh Nghị",
+        "HN09 - Nguyễn Khả Trạc",
+        "HN10 - 73 Mễ Trì Thượng",
+        "HN11 - 225 Nguyễn Ngọc Vũ",
+        "HN12 - 37 Phùng Khoang",
+        "HN13 - 195 Tôn Đức Thắng",
+        "SG01 - 688 Quang Trung",
+        "SG02 - 127 Lê Văn Thọ",
+        "SG03 - 549 Tân Sơn",
+        "SG04 - 448 Nguyễn Văn Khối",
+        "SG05 - 347 Lê Văn Thọ"
+    ]
+    
+    for branch_name in ALL_BRANCHES:
+        report[branch_name] = {'Sáng': [], 'Chiều': [], 'Tối': []}
     
     for co in checkouts:
         branch = co['branch']
