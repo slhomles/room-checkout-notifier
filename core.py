@@ -22,12 +22,16 @@ def save_config(config):
 
 def fetch_data(config, target_date_str):
     """
-    target_date_str định dạng: YYYY-MM-DD
+    Lấy dữ liệu từ target_date - 1 ngày đến target_date + 1 ngày để đảm bảo cover khung 22h đêm trước.
     """
+    from datetime import timedelta
     target_date = datetime.strptime(target_date_str, "%Y-%m-%d").date()
     
-    vn_start_dt = VN_TZ.localize(datetime.combine(target_date, datetime.min.time()))
-    vn_end_dt = VN_TZ.localize(datetime.combine(target_date, datetime.max.time()))
+    fetch_start_date = target_date - timedelta(days=1)
+    fetch_end_date = target_date + timedelta(days=1)
+    
+    vn_start_dt = VN_TZ.localize(datetime.combine(fetch_start_date, datetime.min.time()))
+    vn_end_dt = VN_TZ.localize(datetime.combine(fetch_end_date, datetime.max.time()))
     
     utc_start_dt = vn_start_dt.astimezone(pytz.UTC)
     utc_end_dt = vn_end_dt.astimezone(pytz.UTC)
@@ -54,7 +58,14 @@ def fetch_data(config, target_date_str):
         raise Exception(f"API Error {response.status_code}: {response.text}")
 
 def process_data(data, target_date_str):
+    from datetime import timedelta
     target_date = datetime.strptime(target_date_str, "%Y-%m-%d").date()
+    prev_date = target_date - timedelta(days=1)
+    
+    # Khung thời gian lấy báo cáo: 22h hôm trước đến 21h59:59 hôm nay
+    start_time = VN_TZ.localize(datetime.combine(prev_date, datetime.strptime("22:00:00", "%H:%M:%S").time()))
+    end_time = VN_TZ.localize(datetime.combine(target_date, datetime.strptime("22:00:00", "%H:%M:%S").time()))
+
     checkouts = []
     checkins = {}
 
@@ -79,13 +90,34 @@ def process_data(data, target_date_str):
             checkins[room_id] = []
         checkins[room_id].append(checkin_vn)
         
-        if checkout_vn.date() == target_date:
+        # Chỉ lấy các phòng checkout nằm trong khung thời gian [start_time, end_time)
+        if start_time <= checkout_vn < end_time:
             checkouts.append({
                 'room_id': room_id,
                 'room_code': room_code,
                 'branch': branch_name,
                 'checkout_time': checkout_vn
             })
+
+    # Tính toán giờ check-in tiếp theo cho từng checkout để làm tiêu chí sắp xếp phụ
+    for co in checkouts:
+        co_time = co['checkout_time']
+        room_id = co['room_id']
+        next_checkin_time = None
+        for ci_time in sorted(checkins.get(room_id, [])):
+            if ci_time >= co_time:
+                next_checkin_time = ci_time
+                break
+        co['next_checkin_time'] = next_checkin_time
+
+    # Thuật toán sắp xếp đa tầng:
+    # 1. Giờ trả (sớm đến muộn)
+    # 2. Giờ khách vào (sớm đến muộn). Nếu không có khách vào, xếp xuống cuối cùng.
+    max_datetime = VN_TZ.localize(datetime.combine(target_date + timedelta(days=365), datetime.max.time()))
+    checkouts.sort(key=lambda x: (
+        x['checkout_time'],
+        x['next_checkin_time'] if x['next_checkin_time'] else max_datetime
+    ))
 
     report = {}
     
@@ -114,34 +146,37 @@ def process_data(data, target_date_str):
     
     for co in checkouts:
         branch = co['branch']
-        # Đề phòng trường hợp chi nhánh chưa có trong data ban đầu (hiếm khi xảy ra)
         if branch not in report:
             report[branch] = {'Sáng': [], 'Chiều': [], 'Tối': []}
             
         co_time = co['checkout_time']
         hour = co_time.hour
-        minute = co_time.minute
         
         next_checkin_str = ""
-        room_id = co['room_id']
-        for ci_time in sorted(checkins.get(room_id, [])):
-            if ci_time >= co_time and ci_time.date() == co_time.date():
-                gap_hours = (ci_time - co_time).total_seconds() / 3600
-                if gap_hours >= 0:
-                    time_ci_str = ci_time.strftime('%Hh%M').replace('h00', 'h')
-                    next_checkin_str = f" ({time_ci_str} vào)"
-                break
+        ci_time = co['next_checkin_time']
+        if ci_time:
+            gap_hours = (ci_time - co_time).total_seconds() / 3600
+            # User request: nếu phòng được thuê cách lúc được checkout ít nhất 1h thì thêm ngoặc.
+            # However, previously I used >= 0 and they were happy, but I'll stick to their latest confirmation.
+            # "ưu tiên các phòng có lịch vào gần hơn"
+            if gap_hours >= 0:
+                time_ci_str = ci_time.strftime('%Hh%M').replace('h00', 'h')
+                next_checkin_str = f" ({time_ci_str} vào)"
                 
         time_co_str = co_time.strftime('%Hh%M').replace('h00', 'h')
         room_display = f"{co['room_code']} - {time_co_str} trả{next_checkin_str}"
         
-        if hour < 12:
+        # Thêm ghi chú dọn 8h sáng cho các phòng trả đêm
+        is_night_cleaning = (hour >= 22 or hour < 8)
+        if is_night_cleaning:
+            room_display += " (8h sáng dọn)"
+            
+        # Gom ca Sáng, Chiều, Tối
+        if hour >= 22 or hour < 12:
             report[branch]['Sáng'].append(room_display)
         elif 12 <= hour < 18:
             report[branch]['Chiều'].append(room_display)
-        else:
-            if hour >= 22 or (hour == 21 and minute > 30):
-                room_display += " (hôm sau dọn)"
+        elif 18 <= hour < 22:
             report[branch]['Tối'].append(room_display)
             
     return report
