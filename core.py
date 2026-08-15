@@ -159,7 +159,7 @@ def process_data(data, target_date_str):
             # User request: nếu phòng được thuê cách lúc được checkout ít nhất 1h thì thêm ngoặc.
             # However, previously I used >= 0 and they were happy, but I'll stick to their latest confirmation.
             # "ưu tiên các phòng có lịch vào gần hơn"
-            if gap_hours >= 0:
+            if 0 <= gap_hours <= 12:
                 time_ci_str = ci_time.strftime('%Hh%M').replace('h00', 'h')
                 next_checkin_str = f" ({time_ci_str} vào)"
                 
