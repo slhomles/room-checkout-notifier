@@ -111,13 +111,28 @@ def process_data(data, target_date_str):
         co['next_checkin_time'] = next_checkin_time
 
     # Thuật toán sắp xếp đa tầng:
-    # 1. Giờ trả (sớm đến muộn)
+    # 1. Giờ trả (sớm đến muộn). Cắt bỏ giây để các phòng trả cùng phút được tính là cùng giờ. Các phòng trả đêm (8h dọn) được gom chung lên đầu.
     # 2. Giờ khách vào (sớm đến muộn). Nếu không có khách vào, xếp xuống cuối cùng.
+    # 3. Số thứ tự phòng (từ bé đến lớn).
     max_datetime = VN_TZ.localize(datetime.combine(target_date + timedelta(days=365), datetime.max.time()))
-    checkouts.sort(key=lambda x: (
-        x['checkout_time'],
-        x['next_checkin_time'] if x['next_checkin_time'] else max_datetime
-    ))
+    
+    def get_sort_key(x):
+        co_time = x['checkout_time']
+        hour = co_time.hour
+        is_night = (hour >= 22 or hour < 8)
+        
+        if is_night:
+            # Gán mốc thời gian giả định nhỏ nhất để các phòng đêm luôn đứng đầu ca Sáng và bằng nhau về mặt thời gian trả
+            primary_time = VN_TZ.localize(datetime.combine(prev_date, datetime.min.time()))
+        else:
+            primary_time = co_time.replace(second=0, microsecond=0)
+            
+        secondary_time = x['next_checkin_time'] if x['next_checkin_time'] else max_datetime
+        room_code = str(x['room_code'])
+        
+        return (primary_time, secondary_time, room_code)
+
+    checkouts.sort(key=get_sort_key)
 
     report = {}
     
