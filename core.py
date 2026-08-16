@@ -152,29 +152,32 @@ def process_data(data, target_date_str):
         co_time = co['checkout_time']
         hour = co_time.hour
         
+        is_night_cleaning = (hour >= 22 or hour < 8)
+        
         next_checkin_str = ""
         ci_time = co['next_checkin_time']
         if ci_time:
             gap_hours = (ci_time - co_time).total_seconds() / 3600
-            # User request: nếu phòng được thuê cách lúc được checkout ít nhất 1h thì thêm ngoặc.
-            # However, previously I used >= 0 and they were happy, but I'll stick to their latest confirmation.
-            # "ưu tiên các phòng có lịch vào gần hơn"
-            if 0 <= gap_hours <= 12:
+            # Hiển thị giờ vào nếu gap <= 12h, HOẶC nếu là phòng dọn sáng thì nới lỏng ra 24h để hiển thị giờ vào của ngày hôm sau
+            if (0 <= gap_hours <= 12) or (is_night_cleaning and 0 <= gap_hours <= 24):
                 time_ci_str = ci_time.strftime('%Hh%M').replace('h00', 'h')
                 next_checkin_str = f" ({time_ci_str} vào)"
                 
         time_co_str = co_time.strftime('%Hh%M').replace('h00', 'h')
-        room_display = f"{co['room_code']} - {time_co_str} trả{next_checkin_str}"
+        room_display = f"{co['room_code']} - {time_co_str} trả"
         
-        # Thêm ghi chú dọn 8h sáng cho các phòng trả đêm
-        is_night_cleaning = (hour >= 22 or hour < 8)
         if is_night_cleaning:
             room_display += " (8h sáng dọn)"
             
+        if next_checkin_str:
+            room_display += next_checkin_str
+            
         # Gom ca Sáng, Chiều, Tối
-        if hour >= 22 or hour < 12:
+        # Sáng bao gồm từ đêm đến hết 12h (hour <= 12)
+        if hour >= 22 or hour <= 12:
             report[branch]['Sáng'].append(room_display)
-        elif 12 <= hour < 18:
+        # Chiều từ 13h đến trước 18h
+        elif 13 <= hour < 18:
             report[branch]['Chiều'].append(room_display)
         elif 18 <= hour < 22:
             report[branch]['Tối'].append(room_display)
