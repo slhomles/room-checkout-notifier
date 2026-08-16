@@ -164,10 +164,11 @@ def process_data(data, target_date_str):
                 next_checkin_str = f" ({time_ci_str} vào)"
                 
         time_co_str = co_time.strftime('%Hh%M').replace('h00', 'h')
-        room_display = f"{co['room_code']} - {time_co_str} trả"
-        
         if is_night_cleaning:
-            room_display += " (8h sáng dọn)"
+            room_display = f"{co['room_code']} - 8h dọn"
+        else:
+            time_co_str = co_time.strftime('%Hh%M').replace('h00', 'h')
+            room_display = f"{co['room_code']} - {time_co_str} trả"
             
         if next_checkin_str:
             room_display += next_checkin_str
