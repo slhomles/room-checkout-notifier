@@ -3,295 +3,1036 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Someli Room Check Report</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Someli Property Management - Báo Cáo & Chấm Công</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
-            --someli-dark: #122921; /* Dark Forest Green */
-            --someli-green: #1A3A32;
-            --someli-light: #F4F7F6;
-            --someli-gold: #D4AF37;
-            --text-main: #334155;
+            --someli-dark: #0f231c;
+            --someli-green: #1a3a32;
+            --someli-primary: #1e4d40;
+            --someli-accent: #2e6d5b;
+            --someli-gold: #c29d2b;
+            --someli-light: #f4f7f6;
+            --text-main: #1e293b;
             --text-muted: #64748b;
-            --border: #e2e8f0;
-            --radius: 12px;
-            --shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+            --border: #cbd5e1;
+            --border-light: rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-card: 0 12px 32px rgba(15, 35, 28, 0.12);
+            --shadow-hover: 0 16px 40px rgba(15, 35, 28, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             color: var(--text-main);
-            min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
-            position: relative;
-            z-index: 0;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: -20px; left: -20px; right: -20px; bottom: -20px;
-            background: url('/static/ecycga74jnrmw0d04k4ta4y8zg_result_0.png');
-            background-size: cover;
-            background-position: center;
-            filter: blur(5px);
-            z-index: -1;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f1f5f9;
         }
 
         .container {
-            width: 100%;
-            max-width: 600px;
-            background: url('/static/44806a4fb4c15f6382a338fa439240b6-Picsart-AiImageEnhancer.jpg');
-            background-size: cover;
-            background-position: center;
-            border-radius: var(--radius);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            width: 100vw;
+            height: 100vh;
+            max-width: 100%;
+            background: #f1f5f9;
+            border-radius: 0;
+            box-shadow: none;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            border: none;
         }
 
-        .header-banner {
-            width: 100%;
-            height: 180px;
-            background: transparent;
-            position: relative;
-        }
-        
-        .header-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: transparent;
+        /* Top Brand Header Bar */
+        .brand-header {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            padding: 10px 24px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            padding: 20px;
-            text-align: center;
+            height: 56px;
+            box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            z-index: 10;
         }
 
-        .logo-text {
-            color: var(--someli-dark);
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin: 0 0 5px 0;
-            text-shadow: 0 0 10px rgba(255,255,255,1), 0 0 20px rgba(255,255,255,1), 0 0 30px rgba(255,255,255,0.8);
+        .brand-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
-        .sub-logo {
+        .brand-logo-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--someli-dark), var(--someli-accent));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+            box-shadow: 0 4px 12px rgba(26, 58, 50, 0.3);
+        }
+
+        .brand-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
             color: var(--someli-dark);
+            letter-spacing: 0.5px;
+        }
+
+        .brand-subtitle {
+            margin: 2px 0 0 0;
             font-size: 11px;
             font-weight: 600;
-            letter-spacing: 3px;
+            color: var(--someli-accent);
+            letter-spacing: 1.5px;
             text-transform: uppercase;
-            text-shadow: 0 0 8px rgba(255,255,255,1), 0 0 15px rgba(255,255,255,1);
         }
 
-        .main-content {
-            padding: 35px 40px;
+        .brand-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(26, 58, 50, 0.08);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--someli-dark);
+            border: 1px solid rgba(26, 58, 50, 0.15);
         }
 
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        /* 2-Column Dashboard Layout (Full Viewport Height) */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: minmax(280px, 20%) minmax(0, 1fr);
+            gap: 16px;
+            padding: 16px;
+            flex: 1;
+            height: calc(100vh - 56px);
+            box-sizing: border-box;
+            align-items: stretch;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* Clean Modern Cards */
+        .glass-card {
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-width: 0;
+            height: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .workspace-card {
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            font-size: 18px;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--someli-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Form Controls */
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 18px;
         }
 
         label {
             display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
             color: var(--someli-dark);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            text-shadow: 0 0 8px rgba(255,255,255,1), 0 0 15px rgba(255,255,255,1);
         }
 
-        input[type="text"], input[type="date"], select {
+        input[type="text"], input[type="date"], input[type="month"], select {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px 14px;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 15px;
+            font-size: 14px;
+            font-weight: 500;
             border: 1px solid var(--border);
-            border-radius: 8px;
-            background-color: #f8fafc;
+            border-radius: var(--radius-sm);
+            background-color: #ffffff;
             color: var(--text-main);
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s ease;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
         }
 
-        input[type="text"]:focus, input[type="date"]:focus, select:focus {
+        input:focus, select:focus {
             outline: none;
-            border-color: var(--someli-green);
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(26, 58, 50, 0.15);
+            border-color: var(--someli-accent);
+            box-shadow: 0 0 0 3px rgba(46, 109, 91, 0.18);
         }
 
-        button {
-            background-color: var(--someli-green);
-            color: white;
+        .token-helper {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Tabs Segmented Control với màu sắc rõ rệt */
+        .tabs {
+            display: flex;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            color: #475569;
             border: none;
-            border-radius: 8px;
-            padding: 14px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            border-radius: 7px;
+            padding: 10px 4px;
+            margin: 0;
+            font-weight: 700;
+            font-size: 12px;
             cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            box-shadow: 0 4px 12px rgba(26, 58, 50, 0.15);
-        }
-
-        button:hover {
-            background-color: var(--someli-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(26, 58, 50, 0.25);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-
-        button:disabled {
-            background-color: #94a3b8;
-            cursor: not-allowed;
+            transition: all 0.25s ease;
+            text-align: center;
             box-shadow: none;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #0f231c, #1a3a32);
+            color: #ffffff;
+            box-shadow: 0 3px 8px rgba(15, 35, 28, 0.25);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: #0f231c;
+            background: rgba(255,255,255,0.6);
             transform: none;
         }
 
-        .report-section {
+        .tab-content {
             display: none;
-            margin-top: 35px;
-            padding-top: 30px;
-            border-top: 1px solid var(--border);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        /* Action Buttons Gradient Sinh Động */
+        .btn-primary {
+            background: linear-gradient(135deg, #107555, #14532d);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 13px 20px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.25s ease;
+            margin-top: 6px;
+            box-shadow: 0 4px 14px rgba(16, 117, 85, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0d5f45, #0f3e22);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 117, 85, 0.35);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Sidebar Info Footer */
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px dashed #cbd5e1;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .sidebar-footer-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .badge-icon-time {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .badge-icon-filter {
+            background: #dbeafe;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Empty State (Right Column Default) */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+            padding: 10px 15px;
             animation: fadeIn 0.4s ease forwards;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .empty-hero {
+            margin-bottom: 24px;
+            text-align: center;
         }
 
-        .report-header {
+        .empty-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+            padding: 5px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            border: 1px solid #fcd34d;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+        }
+
+        .empty-hero h2 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f231c;
+        }
+
+        .empty-hero p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 14px;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .feature-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            transition: all 0.2s ease;
+        }
+
+        .feature-card-daily {
+            border-left: 4px solid #2563eb;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.05);
+        }
+
+        .feature-card-daily:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+            border-color: #93c5fd;
+            border-left-color: #1d4ed8;
+        }
+
+        .feature-card-monthly {
+            border-left: 4px solid #d97706;
+            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.05);
+        }
+
+        .feature-card-monthly:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(217, 119, 6, 0.12);
+            border-color: #fcd34d;
+            border-left-color: #b45309;
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .feature-icon-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .feature-icon-daily {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #dbeafe;
+        }
+
+        .feature-icon-monthly {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fef3c7;
+        }
+
+        .feature-title {
+            margin: 0;
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #0f231c;
+        }
+
+        .feature-desc {
+            margin: 0;
+            font-size: 12.5px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Branches Badges Box với màu sắc tươi sáng */
+        .branches-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-top: 3px solid #059669;
+            border-radius: var(--radius-sm);
+            padding: 16px 18px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .branches-panel-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #065f46;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .branches-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .branch-chip {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #065f46;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(6, 95, 70, 0.05);
+        }
+
+        .branch-chip:hover {
+            border-color: #059669;
+            color: #022c22;
+            background: #d1fae5;
+            transform: translateY(-1px);
+        }
+
+        /* Report & Table Views (Tận dụng 100% chiều cao) */
+        .report-section {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+            min-width: 0;
+            max-width: 100%;
+            animation: fadeIn 0.35s ease forwards;
+            overflow: hidden;
+        }
+
+        .report-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            gap: 12px;
+            width: 100%;
+            min-width: 0;
+            flex-shrink: 0;
         }
 
         .report-box {
             background: #f8fafc;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             padding: 20px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            line-height: 1.6;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13.5px;
+            line-height: 1.7;
             white-space: pre-wrap;
-            min-height: 150px;
             color: var(--someli-dark);
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+            overflow-y: auto;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .table-container {
+            width: 100%;
+            max-width: 100%;
+            overflow: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            flex: 1;
+            height: 100%;
+            max-height: none;
+            background: #ffffff;
+            position: relative;
+        }
+
+        /* Thanh cuộn chuyên nghiệp */
+        .table-container::-webkit-scrollbar {
+            height: 10px;
+            width: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 6px;
+            border: 2px solid #f1f5f9;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--someli-green);
+        }
+
+        .stats-table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+            text-align: center;
+            background: white;
+        }
+
+        .stats-table th, .stats-table td {
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 9px 12px;
+        }
+
+        .stats-table th {
+            background-color: var(--someli-green);
+            color: white;
+            font-weight: 700;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12.5px;
+        }
+
+        /* Ghim góc trên bên trái: Ô "Ngày" ở hàng header */
+        .stats-table th:first-child {
+            position: sticky;
+            left: 0;
+            top: 0;
+            z-index: 25;
+            background-color: var(--someli-dark);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .stats-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .stats-table tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Ghim cột "Ngày" bên trái khi cuộn ngang */
+        .stats-table td:first-child, .stats-table .date-col {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.06);
+            border-right: 2px solid #cbd5e1;
+        }
+
+        /* Phân màu trực quan cho ô dữ liệu */
+        .stats-table .cell-zero {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .stats-table .cell-active {
+            color: #065f46;
+            font-weight: 800;
+            background-color: #ecfdf5 !important;
+        }
+
+        .stats-table tr:hover .cell-active {
+            background-color: #d1fae5 !important;
+        }
+
+        /* Ghim hàng Tổng ở đáy */
+        .stats-table .total-row {
+            font-weight: 800;
+            color: #b91c1c;
+            position: sticky;
+            bottom: 0;
+            z-index: 15;
+            box-shadow: 0 -2px 6px rgba(0,0,0,0.08);
+        }
+
+        .stats-table .total-row td {
+            background-color: #fef2f2 !important;
+            border-top: 2px solid #fca5a5;
+        }
+
+        .stats-table .total-active {
+            color: #b91c1c;
+            font-weight: 800;
+            background-color: #fee2e2 !important;
+        }
+
+        /* Ghim ô "Tổng" ở góc dưới bên trái */
+        .stats-table .total-row td:first-child {
+            position: sticky;
+            left: 0;
+            bottom: 0;
+            z-index: 30;
+            background-color: #fee2e2 !important;
+            box-shadow: 2px -2px 6px rgba(0,0,0,0.1);
+            border-right: 2px solid #fca5a5;
         }
 
         .btn-copy {
-            background-color: #fff;
-            color: var(--someli-green);
-            border: 1px solid var(--someli-green);
-            padding: 8px 16px;
+            background: linear-gradient(135deg, #d97706, #b45309);
+            color: #ffffff;
+            border: none;
+            padding: 9px 20px;
             font-size: 13px;
-            font-weight: 600;
-            width: auto;
-            margin-top: 0;
-            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.2);
         }
 
         .btn-copy:hover {
-            background-color: var(--someli-green);
-            color: #fff;
-            box-shadow: none;
+            background: linear-gradient(135deg, #b45309, #92400e);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
+            border: none;
+            padding: 9px 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.2);
+        }
+
+        .btn-export:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+            transform: translateY(-1px);
         }
 
         .loader {
             display: inline-block;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border: 2px solid rgba(255,255,255,.3);
             border-radius: 50%;
-            border-top-color: #fff;
+            border-top-color: #ffffff;
             animation: spin 0.8s linear infinite;
             display: none;
             vertical-align: middle;
-            margin-left: 10px;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        #error-msg {
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .error-msg {
             color: #b91c1c;
             background: #fef2f2;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 16px;
-            font-size: 14px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 500;
             display: none;
             border: 1px solid #fecaca;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1080px) {
+            body {
+                overflow: auto;
+                height: auto;
+            }
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+                overflow: visible;
+            }
+            .table-container {
+                max-height: 600px;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .brand-header {
+                padding: 10px 16px;
+            }
+            .brand-badge {
+                display: none;
+            }
+            .dashboard-layout {
+                padding: 10px;
+                gap: 12px;
+            }
+            .glass-card {
+                padding: 16px;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-banner">
-        <div class="header-overlay">
-            <h1 class="logo-text">Someli</h1>
-            <div class="sub-logo">PROPERTY MANAGEMENT</div>
+<div class="container" id="main-container">
+    <!-- Brand Header -->
+    <div class="brand-header">
+        <div class="brand-left">
+            <div class="brand-logo-icon">S</div>
+            <div>
+                <h1 class="brand-title">Someli Property Management</h1>
+                <div class="brand-subtitle">Hệ Thống Trích Xuất Báo Cáo & Chấm Công Dọn Tối</div>
+            </div>
+        </div>
+        <div class="brand-badge">
+            <div class="status-dot"></div>
+            <span>Máy chủ trực tuyến</span>
         </div>
     </div>
 
-    <div class="main-content">
-        <div class="form-group">
-            <label for="token">Token Hệ Thống</label>
-            <input type="text" id="token" placeholder="Bearer eyJhbG... hoặc session_id=...">
-        </div>
+    <!-- 2-Column Dashboard Layout -->
+    <div class="dashboard-layout">
+        
+        <!-- CỘT TRÁI: BẢNG ĐIỀU KHIỂN -->
+        <div class="glass-card sidebar-card">
+            <div class="card-header-bar">
+                <div class="card-title-group">
+                    <span class="card-icon">⚙️</span>
+                    <div>
+                        <h2 class="card-title">Bảng Điều Khiển</h2>
+                        <div class="card-subtitle">Bộ lọc thông tin & truy vấn</div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label for="date">Chọn Ngày Tra Cứu</label>
-            <input type="date" id="date">
-        </div>
-
-        <button id="btn-fetch" onclick="fetchData()">
-            TRÍCH XUẤT BÁO CÁO
-            <div class="loader" id="loader"></div>
-        </button>
-
-        <div id="error-msg"></div>
-
-        <div class="report-section" id="report-section">
+            <!-- Token Form -->
             <div class="form-group">
-                <label for="branch-select">Khu vực / Chi nhánh</label>
-                <select id="branch-select" onchange="showReport()"></select>
+                <label for="token">Token Hệ Thống</label>
+                <input type="text" id="token" placeholder="Bearer eyJhbG... hoặc session_id=...">
+                <div class="token-helper">
+                    <span>🔒 Token được tự động lưu trên trình duyệt</span>
+                </div>
             </div>
-            
-            <div class="report-header">
-                <h3 style="margin:0; font-size: 15px; font-weight: 700; color: var(--someli-dark);">Chi tiết báo cáo:</h3>
-                <button class="btn-copy" onclick="copyText()">Sao Chép</button>
+
+            <!-- Tabs Segmented Control -->
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-btn-daily" onclick="switchTab('daily')">Báo Cáo Ngày</button>
+                <button class="tab-btn" id="tab-btn-monthly" onclick="switchTab('monthly')">Chấm Công Dọn Tối</button>
             </div>
+
+            <!-- TAB 1: BÁO CÁO NGÀY -->
+            <div id="tab-daily" class="tab-content active">
+                <div class="form-group">
+                    <label for="date">Chọn Ngày Tra Cứu</label>
+                    <input type="date" id="date">
+                </div>
+
+                <button class="btn-primary" id="btn-fetch" onclick="fetchData()">
+                    <span>TRÍCH XUẤT BÁO CÁO</span>
+                    <div class="loader" id="loader"></div>
+                </button>
+
+                <div id="error-msg-daily" class="error-msg"></div>
+            </div>
+
+            <!-- TAB 2: CHẤM CÔNG DỌN TỐI -->
+            <div id="tab-monthly" class="tab-content">
+                <div class="form-group">
+                    <label for="month">Chọn Tháng Tra Cứu</label>
+                    <input type="month" id="month">
+                </div>
+
+                <button class="btn-primary" id="btn-fetch-month" onclick="fetchMonthData()">
+                    <span>XEM BẢNG CÔNG TỐI</span>
+                    <div class="loader" id="loader-month"></div>
+                </button>
+
+                <div id="error-msg-monthly" class="error-msg"></div>
+            </div>
+
+            <!-- Sidebar Footer Tips -->
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-item">
+                    <span class="badge-icon-time">🕒</span>
+                    <span><strong>Giờ chốt ca:</strong> Sau 20:00 tự động chọn ngày tiếp theo.</span>
+                </div>
+                <div class="sidebar-footer-item">
+                    <span class="badge-icon-filter">📋</span>
+                    <span><strong>Khung giờ tối:</strong> Lọc tự động từ 18:00 đến 21:30.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: KHÔNG GIAN BÁO CÁO & KẾT QUẢ -->
+        <div class="glass-card workspace-card">
             
-            <div class="report-box" id="report-box"></div>
+            <!-- TRẠNG THÁI CHỜ BAN ĐẦU (EMPTY STATE) -->
+            <div id="empty-state-view" class="empty-state">
+                <div class="empty-hero">
+                    <div class="empty-badge">✨ TRUNG TÂM VẬN HÀNH SOMELI</div>
+                    <h2>Chào mừng bạn đến với Hệ Thống Báo Cáo</h2>
+                    <p>Dữ liệu phòng và số liệu chấm công sẽ được hiển thị tại đây. Hãy thiết lập ngày hoặc tháng ở Bảng Điều Khiển bên trái rồi nhấn nút trích xuất.</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card feature-card-daily">
+                        <div class="feature-header">
+                            <div class="feature-icon-box feature-icon-daily">📋</div>
+                            <h3 class="feature-title" style="color: #1d4ed8;">Báo Cáo Buồng Phòng Ca Ngày</h3>
+                        </div>
+                        <p class="feature-desc">Tra cứu chi tiết từng cơ sở, tự động định dạng văn bản chuẩn Zalo để gửi nhóm điều hành chỉ với 1 cú click "Sao Chép".</p>
+                    </div>
+
+                    <div class="feature-card feature-card-monthly">
+                        <div class="feature-header">
+                            <div class="feature-icon-box feature-icon-monthly">🌙</div>
+                            <h3 class="feature-title" style="color: #b45309;">Tổng Hợp Chấm Công Dọn Tối</h3>
+                        </div>
+                        <p class="feature-desc">Thống kê toàn bộ số lượt dọn tối trong tháng theo từng ngày và từng cơ sở, chuẩn hóa gộp tên và xuất ra file Excel (.xlsx) chuẩn chỉnh.</p>
+                    </div>
+                </div>
+
+                <!-- Danh Sách Cơ Sở Someli -->
+                <div class="branches-panel">
+                    <div class="branches-panel-title">
+                        <span>🏢</span>
+                        <span>Danh Sách 14 Cơ Sở Đang Quản Lý & Theo Dõi</span>
+                    </div>
+                    <div class="branches-chips">
+                        <span class="branch-chip">HN01 - 119 Đình Thôn</span>
+                        <span class="branch-chip">HN02 - 475 Đội Cấn</span>
+                        <span class="branch-chip">HN03 - 24 Thổ Quan, Khâm Thiên</span>
+                        <span class="branch-chip">HN04 - 59A Yên Bình</span>
+                        <span class="branch-chip">HN05 - 4/137 Đình Thôn</span>
+                        <span class="branch-chip">HN06 - 192 Lê Trọng Tấn</span>
+                        <span class="branch-chip">HN07 - 67 Lê Thanh Nghị</span>
+                        <span class="branch-chip">HN08 - 5/387 Vũ Tông Phan</span>
+                        <span class="branch-chip">HN09 - Nguyễn Khả Trạc</span>
+                        <span class="branch-chip">HN10 - 73 Mễ Trì Thượng</span>
+                        <span class="branch-chip">HN11 - 225 Nguyễn Ngọc Vũ</span>
+                        <span class="branch-chip">HN12 - 37 Phùng Khoang</span>
+                        <span class="branch-chip">HN13 - 195 Tôn Đức Thắng</span>
+                        <span class="branch-chip">SG01 - 688 Quang Trung</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KẾT QUẢ BÁO CÁO NGÀY -->
+            <div class="report-section" id="report-section">
+                <div class="report-toolbar">
+                    <div style="flex: 1; max-width: 320px;">
+                        <label for="branch-select" style="margin-bottom: 4px;">Khu Vực / Chi Nhánh</label>
+                        <select id="branch-select" onchange="showReport()"></select>
+                    </div>
+                    <div>
+                        <button class="btn-copy" onclick="copyText()">
+                            <span>📋</span>
+                            <span id="btn-copy-text">Sao Chép Báo Cáo</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="report-box" id="report-box"></div>
+            </div>
+
+            <!-- KẾT QUẢ BẢNG CHẤM CÔNG DỌN TỐI -->
+            <div class="report-section" id="month-report-section">
+                <div class="report-toolbar">
+                    <h3 style="margin:0; font-size: 16px; font-weight: 800; color: var(--someli-dark);" id="month-table-title">Bảng chấm công:</h3>
+                    <button class="btn-export" onclick="exportExcel()">
+                        <span>📊</span>
+                        <span>Xuất File Excel</span>
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table id="month-table" class="stats-table">
+                        <thead>
+                            <tr id="table-head">
+                                <!-- Headers go here -->
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Data goes here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
 <script>
     let reportsData = {};
+    let currentMonthData = null; 
 
     window.onload = async () => {
         const savedToken = localStorage.getItem('room_check_token');
@@ -300,25 +1041,67 @@
         }
 
         const now = new Date();
-        if(now.getHours() >= 20) {
-            now.setDate(now.getDate() + 1);
-        }
         
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
+        const dailyNow = new Date(now);
+        if(dailyNow.getHours() >= 20) {
+            dailyNow.setDate(dailyNow.getDate() + 1);
+        }
+        const yyyy = dailyNow.getFullYear();
+        const mm = String(dailyNow.getMonth() + 1).padStart(2, '0');
+        const dd = String(dailyNow.getDate()).padStart(2, '0');
         document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
+        
+        const mm_current = String(now.getMonth() + 1).padStart(2, '0');
+        document.getElementById('month').value = `${now.getFullYear()}-${mm_current}`;
     };
+
+    function switchTab(tabName) {
+        document.getElementById('tab-btn-daily').classList.remove('active');
+        document.getElementById('tab-btn-monthly').classList.remove('active');
+        document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+        
+        document.getElementById('tab-daily').classList.remove('active');
+        document.getElementById('tab-monthly').classList.remove('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+
+        updateWorkspaceView();
+    }
+
+    function updateWorkspaceView() {
+        const isDaily = document.getElementById('tab-btn-daily').classList.contains('active');
+        const dailyReport = document.getElementById('report-section');
+        const monthReport = document.getElementById('month-report-section');
+        const emptyState = document.getElementById('empty-state-view');
+
+        if (isDaily) {
+            monthReport.style.display = 'none';
+            if (dailyReport.dataset.loaded === 'true') {
+                dailyReport.style.display = 'flex';
+                if (emptyState) emptyState.style.display = 'none';
+            } else {
+                dailyReport.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'flex';
+            }
+        } else {
+            dailyReport.style.display = 'none';
+            if (monthReport.dataset.loaded === 'true') {
+                monthReport.style.display = 'flex';
+                if (emptyState) emptyState.style.display = 'none';
+            } else {
+                monthReport.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'flex';
+            }
+        }
+    }
 
     async function fetchData() {
         const token = document.getElementById('token').value.trim();
         const date = document.getElementById('date').value;
         const btn = document.getElementById('btn-fetch');
         const loader = document.getElementById('loader');
-        const errorMsg = document.getElementById('error-msg');
         
         if(!token) {
-            showError("Vui lòng nhập Token hệ thống!");
+            showError("daily", "Vui lòng nhập Token hệ thống!");
             return;
         }
 
@@ -326,8 +1109,7 @@
 
         btn.disabled = true;
         loader.style.display = 'inline-block';
-        errorMsg.style.display = 'none';
-        document.getElementById('report-section').style.display = 'none';
+        hideError("daily");
 
         try {
             const res = await fetch('/api/fetch', {
@@ -344,7 +1126,7 @@
                 select.innerHTML = ''; 
                 
                 if(data.branches.length === 0) {
-                    showError("Không lấy được danh sách cơ sở.");
+                    showError("daily", "Không lấy được danh sách cơ sở.");
                 } else {
                     data.branches.forEach(branch => {
                         const option = document.createElement('option');
@@ -353,14 +1135,16 @@
                         select.appendChild(option);
                     });
                     
-                    document.getElementById('report-section').style.display = 'block';
+                    const dailyReport = document.getElementById('report-section');
+                    dailyReport.dataset.loaded = 'true';
+                    updateWorkspaceView();
                     showReport();
                 }
             } else {
-                showError(data.error || "Có lỗi xảy ra khi lấy dữ liệu");
+                showError("daily", data.error || "Có lỗi xảy ra khi lấy dữ liệu");
             }
         } catch(e) {
-            showError("Lỗi kết nối đến server: " + e.message);
+            showError("daily", "Lỗi kết nối đến server: " + e.message);
         } finally {
             btn.disabled = false;
             loader.style.display = 'none';
@@ -379,25 +1163,147 @@
     function copyText() {
         const text = document.getElementById('report-box').textContent;
         navigator.clipboard.writeText(text).then(() => {
-            const copyBtn = document.querySelector('.btn-copy');
-            const originalText = copyBtn.textContent;
-            copyBtn.textContent = 'Đã Sao Chép!';
-            copyBtn.style.backgroundColor = 'var(--someli-gold)';
-            copyBtn.style.borderColor = 'var(--someli-gold)';
-            copyBtn.style.color = '#fff';
+            const copyBtnText = document.getElementById('btn-copy-text');
+            const originalText = copyBtnText.textContent;
+            copyBtnText.textContent = 'Đã Sao Chép!';
             setTimeout(() => {
-                copyBtn.textContent = originalText;
-                copyBtn.style.backgroundColor = '';
-                copyBtn.style.borderColor = '';
-                copyBtn.style.color = '';
+                copyBtnText.textContent = originalText;
             }, 2000);
         });
     }
 
-    function showError(msg) {
-        const err = document.getElementById('error-msg');
+    async function fetchMonthData() {
+        const token = document.getElementById('token').value.trim();
+        const monthVal = document.getElementById('month').value;
+        const btn = document.getElementById('btn-fetch-month');
+        const loader = document.getElementById('loader-month');
+        
+        if(!token) {
+            showError("monthly", "Vui lòng nhập Token hệ thống!");
+            return;
+        }
+
+        localStorage.setItem('room_check_token', token);
+
+        btn.disabled = true;
+        loader.style.display = 'inline-block';
+        hideError("monthly");
+
+        try {
+            const res = await fetch('/api/month-evening-stats', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({month: monthVal, token: token})
+            });
+            
+            const resData = await res.json();
+            
+            if(res.ok && resData.status === 'success') {
+                currentMonthData = resData.data;
+                currentMonthData.monthStr = monthVal;
+                renderMonthTable(resData.data);
+                
+                const monthReport = document.getElementById('month-report-section');
+                monthReport.dataset.loaded = 'true';
+                updateWorkspaceView();
+            } else {
+                showError("monthly", resData.error || "Có lỗi xảy ra khi lấy dữ liệu");
+            }
+        } catch(e) {
+            showError("monthly", "Lỗi kết nối đến server: " + e.message);
+        } finally {
+            btn.disabled = false;
+            loader.style.display = 'none';
+        }
+    }
+
+    function renderMonthTable(data) {
+        const head = document.getElementById('table-head');
+        const body = document.getElementById('table-body');
+        
+        document.getElementById('month-table-title').textContent = `Bảng chấm công Tháng ${data.monthStr.split('-')[1]}/${data.monthStr.split('-')[0]}`;
+        
+        head.innerHTML = '';
+        body.innerHTML = '';
+        
+        let th = document.createElement('th');
+        th.textContent = "Ngày";
+        head.appendChild(th);
+        
+        data.branches.forEach(branch => {
+            let bth = document.createElement('th');
+            bth.textContent = branch;
+            head.appendChild(bth);
+        });
+        
+        let totals = {};
+        data.branches.forEach(b => totals[b] = 0);
+        
+        data.days.forEach(day => {
+            let tr = document.createElement('tr');
+            
+            let tdDate = document.createElement('td');
+            tdDate.className = "date-col";
+            tdDate.textContent = `${day}/${data.monthStr.split('-')[1]}/${data.monthStr.split('-')[0]}`;
+            tr.appendChild(tdDate);
+            
+            data.branches.forEach(branch => {
+                let count = data.data[day][branch] || 0;
+                totals[branch] += count;
+                
+                let td = document.createElement('td');
+                td.textContent = count;
+                if (count > 0) {
+                    td.className = 'cell-active';
+                } else {
+                    td.className = 'cell-zero';
+                }
+                tr.appendChild(td);
+            });
+            
+            body.appendChild(tr);
+        });
+        
+        let trTotal = document.createElement('tr');
+        trTotal.className = "total-row";
+        
+        let tdTotalLbl = document.createElement('td');
+        tdTotalLbl.textContent = "Tổng";
+        trTotal.appendChild(tdTotalLbl);
+        
+        data.branches.forEach(branch => {
+            let tdTotal = document.createElement('td');
+            tdTotal.textContent = totals[branch];
+            if (totals[branch] > 0) {
+                tdTotal.className = 'total-active';
+            }
+            trTotal.appendChild(tdTotal);
+        });
+        
+        body.appendChild(trTotal);
+    }
+    
+    function exportExcel() {
+        if(!currentMonthData) return;
+        
+        const wb = XLSX.utils.book_new();
+        const table = document.getElementById("month-table");
+        const ws = XLSX.utils.table_to_sheet(table);
+        XLSX.utils.book_append_sheet(wb, ws, "BangChamCong");
+        
+        const filename = `Bang_Cham_Cong_Toi_${currentMonthData.monthStr}.xlsx`;
+        XLSX.writeFile(wb, filename);
+    }
+
+    function showError(tab, msg) {
+        const err = document.getElementById(`error-msg-${tab}`);
         err.textContent = msg;
         err.style.display = 'block';
+    }
+    
+    function hideError(tab) {
+        const err = document.getElementById(`error-msg-${tab}`);
+        err.style.display = 'none';
     }
 </script>
 </body>

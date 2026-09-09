@@ -60,6 +60,42 @@ def fetch_report():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/month-evening-stats', methods=['POST'])
+def fetch_month_evening_stats():
+    data = request.json
+    month_str = data.get('month') # Format YYYY-MM
+    token = data.get('token')
+    
+    if not month_str:
+        return jsonify({"error": "Vui lòng chọn tháng"}), 400
+        
+    if not token:
+        return jsonify({"error": "Vui lòng nhập Token xác thực"}), 400
+        
+    try:
+        year, month = map(int, month_str.split('-'))
+    except ValueError:
+        return jsonify({"error": "Định dạng tháng không hợp lệ"}), 400
+        
+    auth_type = "Cookie" if "session_id=" in token else "Bearer"
+    config = {
+        "api_url": "https://ad.someli.vn/api/bookings/calendar",
+        "authorization": token,
+        "auth_type": auth_type
+    }
+        
+    try:
+        api_data = core.fetch_month_data(config, year, month)
+        stats_data = core.process_month_evening_stats(api_data, year, month)
+        
+        return jsonify({
+            "status": "success",
+            "data": stats_data
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=False)

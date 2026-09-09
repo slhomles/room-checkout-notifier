@@ -139,21 +139,25 @@ def process_data(data, target_date_str):
     # Khởi tạo cố định 16 cơ sở
     ALL_BRANCHES = [
         "HN01 - 119 Đình Thôn",
+        "HN01 - 4A/119 Đình Thôn",
         "HN02 - 475 Đội Cấn",
         "HN03 - 24 Thổ Quan, Khâm Thiên",
+        "HN03 - 9/24 Thổ Quan, Khâm Thiên",
         "HN04 - 59A Yên Bình",
+        "HN05 - 4/137 Đình Thôn",
         "HN06 - 192 Lê Trọng Tấn",
+        "HN06 - 82/192 Lê Trọng Tấn",
         "HN07 - 67 Lê Thanh Nghị",
+        "HN07 - 7/34/67 Lê Thanh Nghị",
+        "HN08 - 5/387 Vũ Tông Phan",
         "HN09 - Nguyễn Khả Trạc",
+        "HN10 - 2/73 Mễ Trì Thượng",
         "HN10 - 73 Mễ Trì Thượng",
         "HN11 - 225 Nguyễn Ngọc Vũ",
         "HN12 - 37 Phùng Khoang",
+        "HN12 - 5/37 Phùng Khoang",
         "HN13 - 195 Tôn Đức Thắng",
-        "SG01 - 688 Quang Trung",
-        "SG02 - 127 Lê Văn Thọ",
-        "SG03 - 549 Tân Sơn",
-        "SG04 - 448 Nguyễn Văn Khối",
-        "SG05 - 347 Lê Văn Thọ"
+        "SG01 - 688 Quang Trung"
     ]
     
     for branch_name in ALL_BRANCHES:
@@ -228,3 +232,114 @@ def generate_branch_text(branch_name, shifts, target_date_str):
             lines.append(f"     {room}")
             
     return "\n".join(lines)
+
+def fetch_month_data(config, year, month):
+    import calendar
+    from datetime import timedelta, date
+    
+    _, last_day = calendar.monthrange(year, month)
+    
+    fetch_start_date = date(year, month, 1) - timedelta(days=1)
+    if month == 12:
+        fetch_end_date = date(year + 1, 1, 1) + timedelta(days=1)
+    else:
+        fetch_end_date = date(year, month + 1, 1) + timedelta(days=1)
+        
+    vn_start_dt = VN_TZ.localize(datetime.combine(fetch_start_date, datetime.min.time()))
+    vn_end_dt = VN_TZ.localize(datetime.combine(fetch_end_date, datetime.max.time()))
+    
+    utc_start_dt = vn_start_dt.astimezone(pytz.UTC)
+    utc_end_dt = vn_end_dt.astimezone(pytz.UTC)
+    
+    start_str = utc_start_dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    end_str = utc_end_dt.strftime("%Y-%m-%dT%H:%M:%S.999Z")
+    
+    url = f"{config['api_url']}?startDate={start_str}&endDate={end_str}"
+    
+    headers = {}
+    if config['authorization']:
+        if config['auth_type'] == 'Bearer' and not config['authorization'].startswith('Bearer '):
+            headers['Authorization'] = f"Bearer {config['authorization']}"
+        elif config['auth_type'] == 'Bearer':
+            headers['Authorization'] = config['authorization']
+        elif config['auth_type'] == 'Cookie':
+            headers['Cookie'] = config['authorization']
+    
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        return response.json().get('data', [])
+    else:
+        raise Exception(f"API Error {response.status_code}: {response.text}")
+
+def process_month_evening_stats(data, year, month):
+    import calendar
+    
+    _, last_day = calendar.monthrange(year, month)
+    
+    CANONICAL_BRANCHES = {
+        "HN01": "HN01 - 119 Đình Thôn",
+        "HN02": "HN02 - 475 Đội Cấn",
+        "HN03": "HN03 - 24 Thổ Quan, Khâm Thiên",
+        "HN04": "HN04 - 59A Yên Bình",
+        "HN05": "HN05 - 4/137 Đình Thôn",
+        "HN06": "HN06 - 192 Lê Trọng Tấn",
+        "HN07": "HN07 - 67 Lê Thanh Nghị",
+        "HN08": "HN08 - 5/387 Vũ Tông Phan",
+        "HN09": "HN09 - Nguyễn Khả Trạc",
+        "HN10": "HN10 - 73 Mễ Trì Thượng",
+        "HN11": "HN11 - 225 Nguyễn Ngọc Vũ",
+        "HN12": "HN12 - 37 Phùng Khoang",
+        "HN13": "HN13 - 195 Tôn Đức Thắng",
+        "SG01": "SG01 - 688 Quang Trung"
+    }
+    
+    def canonical_branch_name(name):
+        prefix = name.split(" - ")[0].strip() if " - " in name else ""
+        if prefix in CANONICAL_BRANCHES:
+            return CANONICAL_BRANCHES[prefix]
+        return name
+        
+    branch_headers = list(CANONICAL_BRANCHES.values())
+    
+    stats = {}
+    for day in range(1, last_day + 1):
+        stats[day] = {b: 0 for b in branch_headers}
+        
+    for item in data:
+        if 'roomId' not in item or not item['roomId']:
+            continue
+            
+        branch_name = item['branchId'].get('name', 'Unknown')
+        canonical_name = canonical_branch_name(branch_name)
+        
+        if canonical_name not in branch_headers:
+            branch_headers.append(canonical_name)
+            for day in range(1, last_day + 1):
+                stats[day][canonical_name] = 0
+            
+        try:
+            checkout_utc = datetime.strptime(item['checkoutAt'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=pytz.UTC)
+            checkout_vn = checkout_utc.astimezone(VN_TZ)
+        except ValueError:
+            continue
+            
+        if checkout_vn.year == year and checkout_vn.month == month:
+            ch = checkout_vn.hour
+            cm = checkout_vn.minute
+            
+            is_evening = False
+            if 18 <= ch < 21:
+                is_evening = True
+            elif ch == 21 and cm <= 30:
+                is_evening = True
+                
+            if is_evening:
+                stats[checkout_vn.day][canonical_name] += 1
+                
+    return {
+        "branches": branch_headers,
+        "days": list(range(1, last_day + 1)),
+        "data": stats
+    }
+
