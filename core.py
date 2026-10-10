@@ -7,6 +7,15 @@ import os
 VN_TZ = pytz.timezone('Asia/Ho_Chi_Minh')
 CONFIG_FILE = 'config.json'
 
+# Các cơ sở có ca Tối kéo dài đến 22h30 (tính cả mốc 22h30), áp dụng cho mọi địa chỉ cùng mã
+LATE_EVENING_BRANCH_CODES = {"HN05", "HN07", "HN09", "HN10", "HN11", "HN12"}
+
+def branch_code(name):
+    return name.split(" - ")[0].strip() if " - " in name else ""
+
+def is_late_evening_branch(name):
+    return branch_code(name) in LATE_EVENING_BRANCH_CODES
+
 def load_config():
     if not os.path.exists(CONFIG_FILE):
         return {"api_url": "https://ad.someli.vn/api/bookings/calendar", "authorization": "", "auth_type": "Bearer"}
@@ -61,10 +70,6 @@ def process_data(data, target_date_str):
     from datetime import timedelta
     target_date = datetime.strptime(target_date_str, "%Y-%m-%d").date()
     prev_date = target_date - timedelta(days=1)
-    
-    # Khung thời gian lấy báo cáo: 22h hôm trước đến 21h59:59 hôm nay
-    start_time = VN_TZ.localize(datetime.combine(prev_date, datetime.strptime("22:00:00", "%H:%M:%S").time()))
-    end_time = VN_TZ.localize(datetime.combine(target_date, datetime.strptime("22:00:00", "%H:%M:%S").time()))
 
     checkouts = []
     checkins = {}
@@ -90,13 +95,19 @@ def process_data(data, target_date_str):
             checkins[room_id] = []
         checkins[room_id].append(checkin_vn)
         
-        # Chỉ lấy các phòng checkout nằm trong khung thời gian [start_time, end_time)
-        if start_time <= checkout_vn < end_time:
+        # Phòng trả sau mốc chốt ca Tối (22h, hoặc sau 22h30 với nhóm cơ sở trễ) được đẩy sang ca Sáng hôm sau
+        cutoff = (22, 30) if is_late_evening_branch(branch_name) else (21, 59)
+        pushed_to_next_day = (checkout_vn.hour, checkout_vn.minute) > cutoff
+        report_date = checkout_vn.date() + timedelta(days=1) if pushed_to_next_day else checkout_vn.date()
+
+        # Chỉ lấy các phòng có ngày dọn đúng ngày báo cáo
+        if report_date == target_date:
             checkouts.append({
                 'room_id': room_id,
                 'room_code': room_code,
                 'branch': branch_name,
-                'checkout_time': checkout_vn
+                'checkout_time': checkout_vn,
+                'is_night': pushed_to_next_day or checkout_vn.hour < 8
             })
 
     # Tính toán giờ check-in tiếp theo cho từng checkout để làm tiêu chí sắp xếp phụ
@@ -118,10 +129,8 @@ def process_data(data, target_date_str):
     
     def get_sort_key(x):
         co_time = x['checkout_time']
-        hour = co_time.hour
-        is_night = (hour >= 22 or hour < 8)
-        
-        if is_night:
+
+        if x['is_night']:
             # Gán mốc thời gian giả định nhỏ nhất để các phòng đêm luôn đứng đầu ca Sáng và bằng nhau về mặt thời gian trả
             primary_time = VN_TZ.localize(datetime.combine(prev_date, datetime.min.time()))
         else:
@@ -171,8 +180,8 @@ def process_data(data, target_date_str):
         co_time = co['checkout_time']
         hour = co_time.hour
         
-        is_night_cleaning = (hour >= 22 or hour < 8)
-        
+        is_night_cleaning = co['is_night']
+
         next_checkin_str = ""
         ci_time = co['next_checkin_time']
         if ci_time:
@@ -193,13 +202,14 @@ def process_data(data, target_date_str):
             room_display += next_checkin_str
             
         # Gom ca Sáng, Chiều, Tối
-        # Sáng bao gồm từ đêm đến hết 12h (hour <= 12)
-        if hour >= 22 or hour <= 12:
+        # Sáng bao gồm phòng dọn đêm và đến hết 12h (hour <= 12)
+        if is_night_cleaning or hour <= 12:
             report[branch]['Sáng'].append(room_display)
         # Chiều từ 13h đến trước 18h
         elif 13 <= hour < 18:
             report[branch]['Chiều'].append(room_display)
-        elif 18 <= hour < 22:
+        # Tối từ 18h đến mốc chốt ca (22h, hoặc 22h30 với nhóm cơ sở trễ)
+        else:
             report[branch]['Tối'].append(room_display)
             
     return report
@@ -295,7 +305,7 @@ def process_month_evening_stats(data, year, month):
     }
     
     def canonical_branch_name(name):
-        prefix = name.split(" - ")[0].strip() if " - " in name else ""
+        prefix = branch_code(name)
         if prefix in CANONICAL_BRANCHES:
             return CANONICAL_BRANCHES[prefix]
         return name
@@ -327,13 +337,11 @@ def process_month_evening_stats(data, year, month):
         if checkout_vn.year == year and checkout_vn.month == month:
             ch = checkout_vn.hour
             cm = checkout_vn.minute
-            
-            is_evening = False
-            if 18 <= ch < 21:
-                is_evening = True
-            elif ch == 21 and cm <= 30:
-                is_evening = True
-                
+
+            # Khung dọn tối: 18h00 - 21h30, riêng nhóm cơ sở trễ kéo đến 22h30 (tính cả mốc)
+            cutoff = (22, 30) if is_late_evening_branch(canonical_name) else (21, 30)
+            is_evening = (18, 0) <= (ch, cm) <= cutoff
+
             if is_evening:
                 stats[checkout_vn.day][canonical_name] += 1
                 
